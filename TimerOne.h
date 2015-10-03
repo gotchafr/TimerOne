@@ -110,6 +110,9 @@ class TimerOne
 	else if (pin == TIMER1_C_PIN) OCR1C = dutyCycle;
 	#endif
     }
+    void setPwmDuty180(char pin, unsigned int duty) __attribute__((always_inline)) {
+  	setPwmDuty(pin, 1023-duty);
+    }
     void pwm(char pin, unsigned int duty) __attribute__((always_inline)) {
 	if (pin == TIMER1_A_PIN) { pinMode(TIMER1_A_PIN, OUTPUT); TCCR1A |= _BV(COM1A1); }
 	#ifdef TIMER1_B_PIN
@@ -121,20 +124,34 @@ class TimerOne
 	setPwmDuty(pin, duty);
 	TCCR1B = _BV(WGM13) | clockSelectBits;
     }
+    void pwm180(char pin, unsigned int duty) __attribute__((always_inline)) {
+        if (pin == TIMER1_A_PIN) { pinMode(TIMER1_A_PIN, OUTPUT); TCCR1A |= _BV(COM1A1)|_BV(COM1A0); }
+  	#ifdef TIMER1_B_PIN
+  	else if (pin == TIMER1_B_PIN) { pinMode(TIMER1_B_PIN, OUTPUT); TCCR1A |= _BV(COM1B1)|_BV(COM1B0); }
+  	#endif
+  	#ifdef TIMER1_C_PIN
+  	else if (pin == TIMER1_C_PIN) { pinMode(TIMER1_C_PIN, OUTPUT); TCCR1A |= _BV(COM1C1)|_BV(COM1C0); }
+  	#endif
+  	setPwmDuty(pin, 1023-duty);
+  	TCCR1B = _BV(WGM13) | clockSelectBits;
+    }
     void pwm(char pin, unsigned int duty, unsigned long microseconds) __attribute__((always_inline)) {
 	if (microseconds > 0) setPeriod(microseconds);
 	pwm(pin, duty);
     }
-    void disablePwm(char pin) __attribute__((always_inline)) {
-	if (pin == TIMER1_A_PIN) TCCR1A &= ~_BV(COM1A1);
-	#ifdef TIMER1_B_PIN
-	else if (pin == TIMER1_B_PIN) TCCR1A &= ~_BV(COM1B1);
-	#endif
-	#ifdef TIMER1_C_PIN
-	else if (pin == TIMER1_C_PIN) TCCR1A &= ~_BV(COM1C1);
-	#endif
+    void pwm180(char pin, unsigned int duty, unsigned long microseconds) __attribute__((always_inline)) {
+  	if (microseconds > 0) setPeriod(microseconds);
+  	pwm(pin, 1023-duty);
     }
-
+    void disablePwm(char pin) __attribute__((always_inline)) {
+  	if (pin == TIMER1_A_PIN) TCCR1A &= ~(_BV(COM1A1)|_BV(COM1A0));
+  	#ifdef TIMER1_B_PIN
+  	else if (pin == TIMER1_B_PIN) TCCR1A &= ~(_BV(COM1B1)|_BV(COM1B0));
+  	#endif
+  	#ifdef TIMER1_C_PIN
+  	else if (pin == TIMER1_C_PIN) TCCR1A &= ~(_BV(COM1C1)|_BV(COM1C0));
+  	#endif
+    }
     //****************************
     //  Interrupt Function
     //****************************
