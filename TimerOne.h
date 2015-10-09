@@ -111,7 +111,16 @@ class TimerOne
 	#endif
     }
     void setPwmDuty180(char pin, unsigned int duty) __attribute__((always_inline)) {
-  	setPwmDuty(pin, 1023-duty);
+  	unsigned long dutyCycle = pwmPeriod;
+	dutyCycle *= duty;
+	dutyCycle >>= 10;
+	if (pin == TIMER1_A_PIN) OCR1A = pwmPeriod - dutyCycle;
+	#ifdef TIMER1_B_PIN
+	else if (pin == TIMER1_B_PIN) OCR1B = pwmPeriod - dutyCycle;
+	#endif
+	#ifdef TIMER1_C_PIN
+	else if (pin == TIMER1_C_PIN) OCR1C = pwmPeriod - dutyCycle;
+	#endif
     }
     void pwm(char pin, unsigned int duty) __attribute__((always_inline)) {
 	if (pin == TIMER1_A_PIN) { pinMode(TIMER1_A_PIN, OUTPUT); TCCR1A |= _BV(COM1A1); }
@@ -132,7 +141,7 @@ class TimerOne
   	#ifdef TIMER1_C_PIN
   	else if (pin == TIMER1_C_PIN) { pinMode(TIMER1_C_PIN, OUTPUT); TCCR1A |= _BV(COM1C1)|_BV(COM1C0); }
   	#endif
-  	setPwmDuty(pin, 1023-duty);
+  	setPwmDuty180(pin, duty);
   	TCCR1B = _BV(WGM13) | clockSelectBits;
     }
     void pwm(char pin, unsigned int duty, unsigned long microseconds) __attribute__((always_inline)) {
@@ -141,7 +150,7 @@ class TimerOne
     }
     void pwm180(char pin, unsigned int duty, unsigned long microseconds) __attribute__((always_inline)) {
   	if (microseconds > 0) setPeriod(microseconds);
-  	pwm(pin, 1023-duty);
+  	pwm180(pin, duty);
     }
     void disablePwm(char pin) __attribute__((always_inline)) {
   	if (pin == TIMER1_A_PIN) TCCR1A &= ~(_BV(COM1A1)|_BV(COM1A0));
